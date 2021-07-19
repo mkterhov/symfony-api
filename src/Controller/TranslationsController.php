@@ -4,20 +4,24 @@
 namespace App\Controller;
 
 
-use App\Model\Translation;
+use App\Entity\Translation;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class TranslationsController extends AbstractController
 {
+    protected array $translations;
 
-    /**
-     * @return \App\Model\Translation[]
-     */
-    public static function entries(): array
+    public function __construct()
     {
-        return [
+        $this->populateTranslation();
+    }
+
+    public function populateTranslation(): void
+    {
+        $this->translations = [
             new Translation(1, "wordElvish1", "englishTranslation1"),
             new Translation(2, "wordElvish2", "englishTranslation2"),
             new Translation(3, "wordElvish3", "englishTranslation3"),
@@ -31,17 +35,23 @@ class TranslationsController extends AbstractController
         ];
     }
 
-    public
-    function getTranslationAction(string $word): JsonResponse
+    public function getTranslationAction(string $word): JsonResponse
     {
-        $result = array_filter(self::entries(), static function (Translation $translation) use ($word) {
-            return $translation->elvish === $word;
+        //
+        $result = \array_filter($this->translations, static function (Translation $translation) use ($word) {
+            return $translation->getElvish() === $word;
         });
-        if (!$result) {
-            throw new HttpException(422, "Can't find the requested translation!");
+        //more expressive conditions
+        if (empty($result)) {
+            throw new HttpException(Response::HTTP_NOT_FOUND, "Can't find the requested translation!");
         }
         $match = $result[0];
-        return new JsonResponse(['success' => true, "data" => ["id" => $match->id, $match->elvish => $match->english]], 200);
+        return new JsonResponse(
+            [
+                'success' => true,
+                "data" => ["id" => $match->getId(), 'elvish' => $match->getElvish(), 'english' => $match->getEnglish()]
+            ],
+            Response::HTTP_OK
+        );
     }
-
 }
