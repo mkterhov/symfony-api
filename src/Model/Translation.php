@@ -5,11 +5,11 @@ namespace App\Model;
 class Translation
 {
 
-    private int $id;
+    public int $id;
     public string $english;
     public string $elvish;
 
-    public function __construct(int $id, string $english, string $elvish)
+    public function __construct(int $id, string $elvish, string $english)
     {
         $this->id = $id;
         $this->english = $english;
