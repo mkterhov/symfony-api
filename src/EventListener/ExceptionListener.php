@@ -4,13 +4,15 @@
 namespace App\EventListener;
 
 
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Symfony\Component\HttpKernel\KernelEvents;
 
-class ExceptionListener
+class ExceptionListener implements EventSubscriberInterface
 {
-    public function onKernelException(ExceptionEvent $event)
+    public function kernelException(ExceptionEvent $event)
     {
         // You get the exception object from the received event
         $exception = $event->getThrowable();
@@ -35,5 +37,14 @@ class ExceptionListener
 
         // sends the modified response object to the event
         $event->setResponse($response);
+    }
+
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            KernelEvents::EXCEPTION => [
+                ['kernelException', 10],
+            ],
+        ];
     }
 }
