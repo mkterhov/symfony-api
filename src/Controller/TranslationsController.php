@@ -6,7 +6,6 @@ namespace App\Controller;
 
 use App\Entity\Translation;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Annotation\Route;
@@ -38,26 +37,28 @@ class TranslationsController extends AbstractController
 
     /**
      * @param string $word
-     * @return JsonResponse
+     * @return array
      * @Route("api/translations/{word}",methods={"GET"},name="get_translations")
+     * @throws \JsonException
      */
-    public function getTranslationAction(string $word): JsonResponse
+    public function getTranslationAction(string $word): array
     {
         //
         $result = \array_filter($this->translations, static function (Translation $translation) use ($word) {
             return $translation->getElvish() === $word;
         });
-        //more expressive conditions
         if (empty($result)) {
-            throw new HttpException(Response::HTTP_NOT_FOUND, "Can't find the requested translation!");
+            throw new HttpException(
+                Response::HTTP_NOT_FOUND,
+                \json_encode(["error" => true, "message" => "Can't find the requested translation!"], JSON_THROW_ON_ERROR)
+
+            );
         }
         $match = $result[0];
-        return new JsonResponse(
-            [
-                'success' => true,
-                "data" => ["id" => $match->getId(), 'elvish' => $match->getElvish(), 'english' => $match->getEnglish()]
-            ],
-            Response::HTTP_OK
-        );
+
+        return [
+            'success' => true,
+            "data" => ["id" => $match->getId(), 'elvish' => $match->getElvish(), 'english' => $match->getEnglish()]
+        ];
     }
 }
